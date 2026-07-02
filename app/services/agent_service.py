@@ -59,10 +59,10 @@ class AgentService:
         logger.info("Request: %s", request[:100])
         logger.info("=" * 60)
 
-        # ── Step 1: Plan ──────────────────────────────────────────
+        # --- plan phase ---
         step_counter += 1
         step_start = time.time()
-        logger.info("Step 1/4 — Planning...")
+        logger.info("planning...")
 
         plan = self._planner.plan(request)
         document_type = plan["document_type"]
@@ -86,10 +86,10 @@ class AgentService:
             document_type, len(tasks), len(assumptions),
         )
 
-        # ── Step 2: Execute ───────────────────────────────────────
+        # --- execution phase ---
         step_counter += 1
         step_start = time.time()
-        logger.info("Step 2/4 — Executing tasks...")
+        logger.info("executing tasks...")
 
         sections = self._executor.execute(
             request=request,
@@ -114,10 +114,10 @@ class AgentService:
 
         logger.info("Execution complete: %d sections generated.", len(sections))
 
-        # ── Step 3: Reflect & Improve ─────────────────────────────
+        # --- reflection / self-correction loop ---
         step_counter += 1
         step_start = time.time()
-        logger.info("Step 3/4 — Reflecting on quality...")
+        logger.info("evaluating quality...")
 
         reflection = self._reflector.reflect(
             request=request,
@@ -136,6 +136,7 @@ class AgentService:
             f"Suggestions: {reflection.suggestions if reflection.suggestions else 'None'}."
         )
 
+        # trigger targeted rewrite if quality isn't met
         if not reflection.approved:
             logger.info(
                 "Reflection flagged %d issues (score: %d). Improving...",
@@ -146,7 +147,8 @@ class AgentService:
                 sections=sections,
                 report=reflection,
             )
-            # Re-reflect after improvement
+            
+            # evaluate again post-improvement
             reflection = self._reflector.reflect(
                 request=request,
                 document_type=document_type,
@@ -172,10 +174,10 @@ class AgentService:
             duration_seconds=round(time.time() - step_start, 2),
         ))
 
-        # ── Step 4: Generate Document ─────────────────────────────
+        # --- document compilation ---
         step_counter += 1
         step_start = time.time()
-        logger.info("Step 4/4 — Generating .docx...")
+        logger.info("writing to docx...")
 
         title = self._derive_title(request, document_type)
         doc_path = self._doc_tool.generate(

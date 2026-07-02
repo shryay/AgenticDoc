@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class PlannerAgent:
-    """Decomposes a natural language request into an actionable task plan."""
+    """Breaks down a natural language request into a structured task list."""
 
     def __init__(self, llm: LLMClient) -> None:
         self._llm = llm

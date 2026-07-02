@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class ExecutorAgent:
-    """Executes planned tasks sequentially, generating document sections."""
+    """Runs through the task list sequentially to generate document sections."""
 
     def __init__(self, llm: LLMClient) -> None:
         self._llm = llm
